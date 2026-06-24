@@ -1,0 +1,30 @@
+# Dépendances Node.js
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Variables d'environnement (SECRETS !)
+.env
+.env.local
+.env.production
+
+# Build de production
+frontend/dist/
+backend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Couverture de tests
+coverage/
+frontend/coverage/
+backend/coverage/
+
+# OS / IDE
+.DS_Store
+.vscode/
+*.swp
+
+# Docker (volumes locaux)
+mysql_data/
