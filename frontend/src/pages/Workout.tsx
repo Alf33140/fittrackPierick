@@ -8,7 +8,7 @@
 //========================================
 import { useEffect,useState, FormEvent, ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Calendar, Clock, Dumbbell, ChevronRight, Pencil, Trash2, X, Loader2, DivideCircle, PlayCircle } from 'lucide-react'
+import { Plus, Calendar, Clock, Dumbbell, ChevronRight, Pencil, Trash2, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { Workout, Exercise, WorkoutExercise } from '../types'

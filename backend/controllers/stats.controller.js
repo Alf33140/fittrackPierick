@@ -9,7 +9,7 @@
 const WorkoutModel = require('../models/workout.model');
 const UserModel = require('../models/user.model');
 
-const StatController = {
+const StatsController = {
 
             //------Get /api/stats/progression ---
             // Retourne les statistiques complètes de l'utilisateur : résumé global,
@@ -45,4 +45,4 @@ const StatController = {
     },
 };
 
-module.exports = StatController
+module.exports = StatsController
