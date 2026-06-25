@@ -296,7 +296,7 @@ const addExRow = () => {
                         {/* Section execrices avec ajout/suppression dynamique */}
                         <div>
                             <div className='flex items-center justify-between mb-2'>
-                                <label className='flex items-center'{labelCls}>
+                                <label className={labelCls}>
                                     Exercices
                                         {form.exercises.length >0 && <span className='ml-2 text-indogo-400'>({form.exercises.length})</span>} 
                                 </label>
@@ -337,21 +337,72 @@ const addExRow = () => {
 
                                                 </div>
                                             {selEx && (
-                                                
+                                                <p className={`text-xs font-medium ${CAT_COLORS[selEx.category] ?? 'text-slate-400'}`}>
+                                                    {selEx.category}{selEx.muscle_group ? ` · ${selEx.muscle_group}` : ''}
+                                                </p>
                                             )}
-                                            </div>
-                                        )
-                                    })}
-                            )
-                        </div>
+
+                                             {/* Champs selon catégorie : durée pour Cardio, sets/reps/poids sinon */}
+                                                {isCardio ? (
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">Durée (secondes)</label>
+                                                        <input type="number" value={row.duration} onChange={(e) => updateExRow(idx, 'duration', e.target.value)} placeholder="1800" className="mt-1 w-full px-3 py-1.5 bg-slate-900/60 border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                                    </div>
+                                                    ) : (
+                                                       <div className='grid grid-cols-3 gap-2'>
+                                                           {[
+                                                            {field: 'sets', label: 'Series', placeholder: '4'},
+                                                            {field: 'reps', label: 'Repss', placeholder: '8'},
+                                                            {field: 'weight_used', label: 'Poids: (kg)', placeholder: '804'},
+                                                           ].map(({ field, label, placeholder}) => (
+                                                                <div key={field}>
+                                                                    <label className='text-xs text-slate-500'>{label}</label>
+                                                                    <input  
+                                                                        type="number"
+                                                                        value={(row as unknown as Record<string, string>)[field]}
+                                                                        onChange={(e) => updateExRow(idx, field, e.target.value)}
+                                                                        placeholder={placeholder}
+                                                                        className='mt-1 w-full px-3 py-1.5 bg-slate-900/60 border border-slate-700 rounded-lg text-xs text-slate-100  focus:outline-none focus:ring-1 focus:ring-indigo-500'
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                )
+                                            })}
+                                        <button type='button' onClick={addExRow} className='w-full py-2 border border-dashed border-slate-700 rounded-lg text-xs text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-colrs'>
+                                            Ajouter un autre exercice
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className='flex gap-3 pt-2'>
+                                <button type='button' onClick={() => setModalOpen(false)} className='flex-1 border border-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700/40 transition-colors'>Annuler</button>
+                                <button type='submit' disabled={submitting || loadingEdit} className='flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white py-2.5 rounded-lg text-sm font-medium transition-colors'>
+                                {submitting ? 'Enregistrement...': editTarget ? 'Enregistrer' : 'creer'}
+                                </button>
+                            </div>
                             </form>
                         </div>
                     </div>
-
                 </div>
             )}
-        </div>
-    )
-
-}
+            {/* Modal de confirmation de suppresion */}
+            {deleteId !== null && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm'>
+                    <div className='bg-[#1E293B clear-bothtext-base font-semibold runded-2xl shadow-2xl w-full max-w-sm p-6'>
+                        <h2 className='text-base font-semibold text-slate-100 mb-2 '>Supprimer la séance</h2>
+                        <p className='text-sm text-slate-400 mb-6'>Cette action est irréversible</p>
+                        <div className='flex gap-3'>
+                                <button onClick={() => setDeleteId(null)} className='flex-1 border border-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font medium hover:bg-slate-700/40 transition-colors'>Annuler</button>
+                                <button onClick={() => handleDelete(deleteId)} className='flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 text-sm font-medium transition-colors'>Supprimer</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        )
+    }
 
