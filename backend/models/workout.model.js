@@ -157,7 +157,7 @@ const WorkoutModel = {
         // DATE_FORMAT(date, '%Y-%m') regroupe par mois (ex "2025-06") | LIMIT 6 = on remonte 6 mois maximum pour les graphiques
         const [monthlyStats] = await db.execute (
             `SELECT
-            DATE_FORMAT(date, '%Y-%m' as month),
+            DATE_FORMAT(date, '%Y-%m') as month,
             COUNT(*) as workout_count,
             COALESCE(SUM(duration), 0) as total_minutes
             FROM Workout
@@ -177,7 +177,7 @@ const WorkoutModel = {
             COALESCE(SUM(we.sets * we.reps), 0) as total_reps
             FROM WorkoutExercise we
             JOIN Exercise e ON we.exercise_id = e.id
-            JOIN WORKOUT w ON we.workout_id = w.id
+            JOIN Workout w ON we.workout_id = w.id
             WHERE w.user_id = ?
             GROUP BY e.category`,
             [userId]
@@ -185,7 +185,7 @@ const WorkoutModel = {
 
         //4- 5 dernières séances (résumé pour le dashboard)
         const [recentWorkouts] = await db.execute (
-            `SELECT id,titlen daten duration
+            `SELECT id,title, date, duration
             FROM Workout
             WHERE user_id = ?
             ORDER BY date DESC

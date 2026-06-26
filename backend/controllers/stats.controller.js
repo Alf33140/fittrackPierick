@@ -40,7 +40,7 @@ const StatsController = {
             });
         }catch (err) {
             console.error('Stats error', err);
-            res.status(500).jspn({error : 'Failed to fetch stats.'});
+            res.status(500).json({error : 'Failed to fetch stats.'});
         }
     },
 };

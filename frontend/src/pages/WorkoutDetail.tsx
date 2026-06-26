@@ -22,7 +22,6 @@ import toast from 'react-hot-toast'
 import api from '../services/api'
 import { Workout, Exercise, WorkoutExercise } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { setScale } from 'recharts/types/state/layoutSlice'
 
 const CAT_COLORS: Record<string, string> ={
     Musculation: 'bg-indigo-500/15 text-indigo-300',
@@ -61,7 +60,7 @@ export default function WorkoutDetail() {
 
     const [workout, setWorkout] = useState<Workout | null>(null)
     const [allExercises, setAllExercises] = useState<Exercise[]>([])
-    const [loading, setLoading] = useState <number | null>(null)
+    const [loading, setLoading] = useState (true)
 
     // etat par exercise (keyed by weId = WorkoutExercise.id)
     // Record<number, T > = objet indéxé par un nombre
@@ -127,7 +126,7 @@ const changeEdit = (weId: number, field: keyof EditState, value: string) => {
 }
 
 // Sauvegarde les modifications d'un exercice  (PATCH /workouts/:id/exercises/:weId)
-const savEdit = async (weId: number) => {
+const saveEdit = async (weId: number) => {
     if (!id) return
     setSaving((prev) => ({ ...prev, [weId]: true })) //Active le spinner pour cezt exercice
     try {
@@ -202,72 +201,163 @@ const savEdit = async (weId: number) => {
   if (loading) return <LoadingSpinner />
   if (!workout) return null // cas improbable mais typeScript l'exige
 
-const Exercises = workout.exercises ?? []
+const exercises = workout.exercises ?? []
 
-return (
+ return (
     <div className="space-y-5 max-w-2xl">
-        {/* Lien retour */}
-        <Link to="/workouts" className='inline-flex  items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors'>
-            <ArrowLeft size={15} /> Retour aux séences
-        </Link>
-        {/* En-tete de seance */}
-        <div className='bg-[1E293B] border border-slate-700/50 rounded-2xl p-6 space-y-4'>
-            <h1 className='text-xl font-bold text-slate-100'>{workout.title}</h1>
-                <div className='flex flex-xrap gap-4'>
-                    <span className='flex items-center gap-2 text-sm text-slate-400'>Calendar size={14} className="text-slate-500" /> {formatDate(workout.date)}</span>
-                    {workout.duration && <span className="flex items-center gap-2 text-sm text-slate-400"><Clock size={14} className="text-slate-500" />{workout.duration} minutes</span>}
-                    </div>
-                    
-                    {workout.notes && [
-                        <div className='flex itels-start gap-2 pt-3 border-t border-slate-700/50'>
-                                <FileText size={14} className='text-slate-500 mt-0.5 shrink-0' />
-                                <p className='text-sm text-slate-400'> {workout.notes}</p>
-                        </div>
-                    ]}
-     {/* Section Exercises */}
-                    <div className='bg-["1E293 border border-slate-700/50 rounded-2xl p-6 '>
-                        <div className='flex items-center justify-between mb-4'>
-                            <div className='flex items-center gap-2'>
-                                <Dumbbell size={16} className='text-slate-500 '/>
-                                <h2 className='text-sm  font-semibold text-slate-500'>
-                                Exercices
-                                {Exercises.length > 0 && <span className='ml-2 text-xs font-normal text-slate-500'> ({Exercises.length })</span>}
-                            </h2>
-                            </div>
-                         {/* Toggle du panel d ajout */}
-                         <button onClick={() => { setAddOpen((v) => !v)}} className='flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors '>
-                            <Plus size={13} />
-                            Ajouter 
-                         </button>
-                        </div>
-                           {/* Panel d'jout d un exercice  (toggle)  */}
-                           {addOpen && (
-                            <div className='mb-4 bg-slate-900/50 border border-slate-700 rounded-xl p-4 space-y-3'>
-                                <p className='text-xs font-medium text-slate-300'>Nouvel exercice</p>
-                                <select name="exercise_id" value={addForm.exercise_id} onChange={handleAddChange} className='w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100 focus:ouline-none focus:ring-1 focus:ring-indigo-500 '>
-                                    {allExercises.map((ex) => (<option key={ex.id} value={ex.id}>{ex.name} - {ex.category}</option> ))} 
-                                </select>
-                            </div>
-                            {selectedEx && <p className={`text-xs font-medium ${CAT_TEXT[selectedEx.category] ?? 'text-slate-400'}`}>{selectedEx.category}{selectedEx.muscle_group ?  · ${selectedEx.muscle_group} : ''}</p>}
+      {/* Lien retour */}
+      <Link to="/workouts" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+        <ArrowLeft size={15} /> Retour aux séances
+      </Link>
 
-
-                            {/* Champs adapté selon la category */}
-
-                            {isCardioAdd ?(
-                                <div>
-                                    <label className='text-xs text-slate-500'> Durée (secondes)</label>
-                                    <input type="number" name={name} onVolumeChangeCapture={(adForm as Record<string, string | number>)[name] as string} onChange={handleAddChange} placeholder={ph} className='{`mt-1 ${miniInput}`} />
-                                </div>
-
-                            ) : (
-
-                           ))}
-                        </div>
-                    )}
-                    
-                    <div 
-                    </div>
-
+      {/* En-tête de la séance */}
+      <div className="bg-[#1E293B] border border-slate-700/50 rounded-2xl p-6 space-y-4">
+        <h1 className="text-xl font-bold text-slate-100">{workout.title}</h1>
+        <div className="flex flex-wrap gap-4">
+          <span className="flex items-center gap-2 text-sm text-slate-400"><Calendar size={14} className="text-slate-500" />{formatDate(workout.date)}</span>
+          {workout.duration && <span className="flex items-center gap-2 text-sm text-slate-400"><Clock size={14} className="text-slate-500" />{workout.duration} minutes</span>}
         </div>
+        {workout.notes && (
+          <div className="flex items-start gap-2 pt-3 border-t border-slate-700/50">
+            <FileText size={14} className="text-slate-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-slate-400">{workout.notes}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Section exercices */}
+      <div className="bg-[#1E293B] border border-slate-700/50 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Dumbbell size={16} className="text-slate-500" />
+            <h2 className="text-sm font-semibold text-slate-200">
+              Exercices
+              {exercises.length > 0 && <span className="ml-2 text-xs font-normal text-slate-500">({exercises.length})</span>}
+            </h2>
+          </div>
+          {/* Toggle du panel d'ajout */}
+          <button onClick={() => { setAddOpen((v) => !v) }} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+            <Plus size={13} />
+            Ajouter
+          </button>
+        </div>
+
+        {/* Panel d'ajout d'un exercice (toggle) */}
+        {addOpen && (
+          <div className="mb-4 bg-slate-900/50 border border-slate-700 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-medium text-slate-300">Nouvel exercice</p>
+            <select name="exercise_id" value={addForm.exercise_id} onChange={handleAddChange} className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              {allExercises.map((ex) => (<option key={ex.id} value={ex.id}>{ex.name} — {ex.category}</option>))}
+            </select>
+            {selectedEx && <p className={`text-xs font-medium ${CAT_TEXT[selectedEx.category] ?? 'text-slate-400'}`}>{selectedEx.category}{selectedEx.muscle_group ? ` · ${selectedEx.muscle_group}` : ''}</p>}
+
+            {/* Champs adaptés selon la catégorie */}
+            {isCardioAdd ? (
+              <div>
+                <label className="text-xs text-slate-500">Durée (secondes)</label>
+                <input type="number" name="duration" value={addForm.duration} onChange={handleAddChange} placeholder="1800" className={`mt-1 ${miniInput}`} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {[{ name: 'sets', label: 'Séries', ph: '4' }, { name: 'reps', label: 'Reps', ph: '8' }, { name: 'weight_used', label: 'Poids (kg)', ph: '80' }].map(({ name, label, ph }) => (
+                  <div key={name}>
+                    <label className="text-xs text-slate-500">{label}</label>
+                    <input type="number" name={name} value={(addForm as Record<string, string | number>)[name] as string} onChange={handleAddChange} placeholder={ph} className={`mt-1 ${miniInput}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setAddOpen(false)} className="flex-1 py-1.5 border border-slate-600 rounded-lg text-xs text-slate-400 hover:bg-slate-700/40 transition-colors">Annuler</button>
+              <button onClick={submitAdd} disabled={addSaving || !addForm.exercise_id} className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 rounded-lg text-xs text-white font-medium transition-colors flex items-center justify-center gap-1">
+                {addSaving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Ajouter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Liste des exercices avec édition inline */}
+        {exercises.length === 0 ? (
+          <p className="text-sm text-slate-500 text-center py-8">Aucun exercice — clique sur « Ajouter » pour en ajouter un.</p>
+        ) : (
+          <div className="divide-y divide-slate-700/50">
+            {exercises.map((ex) => {
+              const isEditing  = ex.id in editing  // L'exercice est-il en mode édition ?
+              const isSaving   = saving[ex.id]     // Sauvegarde en cours pour cet exercice ?
+              const isDeleting = deleting === ex.id // Suppression en cours ?
+              const isCardio   = ex.category === 'Cardio'
+
+              return (
+                <div key={ex.id} className="py-4 first:pt-0 last:pb-0">
+                  {/* En-tête de l'exercice : nom + badge catégorie + boutons */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-medium text-sm text-slate-200 flex-1">{ex.name}</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${CAT_COLORS[ex.category] ?? 'bg-slate-700 text-slate-300'}`}>{ex.category}</span>
+                    {/* Boutons édition/suppression masqués pendant l'édition */}
+                    {!isEditing && (
+                      <>
+                        <button onClick={() => startEdit(ex)} className="p-1 text-slate-600 hover:text-indigo-400 transition-colors" title="Modifier"><Pencil size={13} /></button>
+                        <button onClick={() => confirmDelete(ex.id)} disabled={isDeleting} className="p-1 text-slate-600 hover:text-red-400 transition-colors disabled:opacity-40" title="Retirer">
+                          {/* Icône de chargement pendant la suppression */}
+                          {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {ex.muscle_group && !isEditing && <p className="text-xs text-slate-500 mb-2">{ex.muscle_group}</p>}
+
+                  {/* Mode lecture : affichage des badges séries/reps/poids */}
+                  {!isEditing && (
+                    <div className="flex flex-wrap gap-2">
+                      {ex.sets && <span className="text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 rounded-md">{ex.sets} séries</span>}
+                      {ex.reps && <span className="text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 rounded-md">{ex.reps} reps</span>}
+                      {ex.weight_used && <span className="text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 rounded-md">{ex.weight_used} kg</span>}
+                      {ex.duration && <span className="text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 rounded-md">{formatDuration(ex.duration)}</span>}
+                      {!ex.sets && !ex.reps && !ex.weight_used && !ex.duration && <span className="text-xs text-slate-600 italic">Aucune donnée</span>}
+                    </div>
+                  )}
+
+                  {/* Mode édition inline : inputs avec les valeurs actuelles */}
+                  {isEditing && (
+                    <div className="space-y-2 mt-1">
+                      {isCardio ? (
+                        <div>
+                          <label className="text-xs text-slate-500">Durée (secondes)</label>
+                          <input type="number" value={editing[ex.id].duration} onChange={(e) => changeEdit(ex.id, 'duration', e.target.value)} placeholder="1800" className={`mt-1 ${miniInput}`} />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            { field: 'sets', label: 'Séries', ph: '4' },
+                            { field: 'reps', label: 'Reps', ph: '8' },
+                            { field: 'weight_used', label: 'Poids (kg)', ph: '80' },
+                          ] as const).map(({ field, label, ph }) => (
+                            <div key={field}>
+                              <label className="text-xs text-slate-500">{label}</label>
+                              <input type="number" value={editing[ex.id][field]} onChange={(e) => changeEdit(ex.id, field, e.target.value)} placeholder={ph} className={`mt-1 ${miniInput}`} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={() => cancelEdit(ex.id)} className="flex items-center gap-1 px-3 py-1.5 border border-slate-600 rounded-lg text-xs text-slate-400 hover:bg-slate-700/40 transition-colors"><X size={11} /> Annuler</button>
+                        <button onClick={() => saveEdit(ex.id)} disabled={isSaving} className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 rounded-lg text-xs text-white font-medium transition-colors">
+                          {isSaving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                          Enregistrer
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
-)
+  )
+}

@@ -9,8 +9,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Exercises from './pages/Exercises'
-import Workouts from './pages/Workout'
-// import WorkoutDetail from './pages/WorkoutDetail'
+import Workouts from './pages/Workouts'
+import WorkoutDetail from './pages/WorkoutDetail'
 // import Profile from './pages/Profile'
 
 export default function App() {
@@ -44,7 +44,7 @@ export default function App() {
               <Route path="/exercises" element={< Exercises/>}/>
               <Route path="/workouts " element={< Workouts />}/>
               {/* :id = paramètre dynamique récupéré avec useParams() dans workoutdetail */}
-              {/* <Route path="/workout/:id" element={< WorkoutDetail/>}/> */}
+              <Route path="/workout/:id" element={< WorkoutDetail/>}/>
               {/* <Route path="/profile" element={< Profile/>}/> */}
             </Route>
           </Route>
