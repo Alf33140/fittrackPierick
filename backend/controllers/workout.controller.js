@@ -64,7 +64,7 @@ const WorkoutController = {
             // Array.isArray() vérifie que exercises est bien dans un tableau (pas undefined)
             if (Array.isArray(exercises) && exercises.length > 0) {
                 for (const ex of exercises) {
-                    if (!ex.exercises_id) continue; // ignore les entrées sans exercices
+                    if (!ex.exercise_id) continue; // ignore les entrées sans exercices
                     await WorkoutModel.addExercise(workoutId, ex);
                 }
             }
@@ -137,7 +137,7 @@ const WorkoutController = {
             // req.params.id = id de la séance (pour vérifier l'appartenance)
             await WorkoutModel.updateExercise(req.params.weId, req.params.id, {sets, reps, weight_used, duration});
             
-            const updatde = await WorkoutModel.findById(req.params.id, req.user.id);
+            const update = await WorkoutModel.findById(req.params.id, req.user.id);
             res.json({message: 'Exercise updated.', workout: updated });
         }   catch (err) {
             res.status(500).json({error: 'Failed to update exercise.'});
@@ -155,7 +155,7 @@ const WorkoutController = {
             //On supprime l'exercice de la s"ance grace à son Id (id exercice et id séance)
             const deleted = await WorkoutModel.removeExercise(req.params.weId, req.params.id);
             // Si l'exercice n'a pas été trouvé dans cette séance là -> erreur 4044
-            if (!deleted) return res.status(404).json({error: 'Exercise not doun in this workout.'});
+            if (!deleted) return res.status(404).json({error: 'Exercise not found in this workout.'});
 
             //on recupere la séance à nouveu, mais sans l'exercice qui aété supprimé
             const updated = await WorkoutModel.findById(req.params.id, req.user.id);

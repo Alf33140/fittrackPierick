@@ -192,7 +192,7 @@ const addExRow = () => {
                 const res = await api.post('/workouts', payload)
                 // Ajout en tete de liste pour que la nouvelle seance apparaisse en 1er
                 setWorkouts([{ ...res.data.workout, exercise_count: payload.exercises.length}, ...workouts])
-                toast.success('seance créée')
+                toast.success('séance créée')
             }
             setModalOpen(false)
 

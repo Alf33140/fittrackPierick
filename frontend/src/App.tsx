@@ -39,20 +39,20 @@ export default function App() {
           Layout ajoute la sidebar et la zone de contenu principale
           Toutes les pages imbriqués hériten de cette protection */}
           <Route element={<PrivateRoute/>}>
-            <Route element={<Layout />}>
-              <Route path="/dashboard" element={< Dashboard/>}/>
-              <Route path="/exercises" element={< Exercises/>}/>
-              <Route path="/workouts " element={< Workouts />}/>
+            <Route element={<Layout/>}>
+              <Route path="/dashboard" element={<Dashboard/>}/>
+              <Route path="/exercises" element={<Exercises/>}/>
+              <Route path="/workouts" element={<Workouts/>}/>
               {/* :id = paramètre dynamique récupéré avec useParams() dans workoutdetail */}
-              <Route path="/workout/:id" element={< WorkoutDetail/>}/>
-              {/* <Route path="/profile" element={< Profile/>}/> */}
+              <Route path="/workouts/:id" element={<WorkoutDetail/>}/>
+              {/* <Route path="/profile" element={<Profile/>}/> */}
             </Route>
           </Route>
 
           {/* --------Fallback
           Toute url inconnue redirige vers le dashboard 
           replace évite d'empiler une entrée dans l'historique de navigation */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace/>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
