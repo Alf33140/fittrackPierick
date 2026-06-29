@@ -92,7 +92,7 @@ const ExerciseController = {
             //On vérifie l'existence AVANT de mettre à jour pour retourne un 404 clair
             const exercise = await ExerciseModel.findById(req.params.id);
             // Si il n'est pas trouvé, on arrête la requete     
-            if (!exercise) return res.status(404).join({error: 'Exercise not found.'});
+            if (!exercise) return res.status(404).json({error: 'Exercise not found.'});
             
             //si il existe on met à jours ses données
             const updated = await ExerciseModel.update(req.paramams.id, {name, category, muscle_group, description});

@@ -5,6 +5,7 @@
 //=========================================================
 
 const db = require('../config/database');
+const { update } = require('./workout.model');
 
 const ExerciseModel = {
 
@@ -53,7 +54,7 @@ const ExerciseModel = {
     },
 
     // UPDATE: Mettre à jour un exercice (mise à jour partielle) 
-    async create(id, {name, category, muscle_group, description}) {
+    async update(id, {name, category, muscle_group, description}) {
         // Même technique que UserModel.update : construction dynamique
         // pour mne modifier que les champs effectivement fournis dans la requête
         const fields = [];

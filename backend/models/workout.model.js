@@ -70,7 +70,7 @@ const WorkoutModel = {
         // weight_used : poids utilisé en kg (peut petre null pour les exercices cardio)
         // duration : durée en secondes (pour les exercices cardio, pas de sets/reps)
         const [result] = await db.execute(
-            'INSERT INTO WorkourExercise (workout_id, exercise_id, sets, reps, weight_used, duration)' +
+            'INSERT INTO WorkoutExercise (workout_id, exercise_id, sets, reps, weight_used, duration)' +
             ' VALUES (?, ?, ?, ?, ?, ?)',
             [workoutId, exercise_id, sets || null, reps || null, weight_used || null, duration || null] );
         return result.insertId;
@@ -81,7 +81,7 @@ const WorkoutModel = {
         // On filtre aussi par workout_id : un utilisateur ne peut modifier
         // que les exercices de ses propres séances
         await db.execute(
-            'UPDATE WorkoutExercise +  SET sets=?, reps=?, weight_used=?, duration=? +  WHERE id=? AND workout_id=?',
+            'UPDATE WorkoutExercise SET sets=?, reps=?, weight_used=?, duration=? +  WHERE id=? AND workout_id=?',
             [sets || null, reps || null, weight_used || null, duration || null, weId, workoutid]
         );
     },
@@ -121,7 +121,7 @@ const WorkoutModel = {
         // On passe id ET userId dans le WHERE pour s'assurer que l'utilisateur ne peut modifer que ses propres séances (isolation des données)
         //WHERE id =? and user_id = ? : double sécurité -- même avec le bon id, un autre utilisateur ne peut pas modifier cette séance
         values.push(id, userId);
-        await db.execute(`UPDATE Workout SET ${fields.join(', ')} WHERE id = ?AND user_id = ?`,values);
+        await db.execute(`UPDATE Workout SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`,values);
         return this.findById(id, userId);
     },
 

@@ -1,154 +1,149 @@
-//=========================================================================
-//pages/workoutDetail.tsx  Detail d'une seance avec edition inline
+// ============================================================
+// pages/WorkoutDetail.tsx — Détail d'une séance avec édition inline
 //
-//Page la plus avancée du projet. elle illustre:
-// - useParams: récupération de l'id depuis l'URL (/workouts/id)
-// - Promise.all: chargement parallele des donnees 
-// - Edition inline (par exercice) sans rechargement de page
-// - Etat par identifiant: Record<number, ...> pour gérer plusieurs
-// etats independants (édition,*/sauvegarde/suppression par exercice)
-//========================================================================
+// Page la plus avancée du projet. Elle illustre :
+//   - useParams : récupération de l'id depuis l'URL (/workouts/:id)
+//   - Promise.all : chargement parallèle de données
+//   - Édition inline (par exercice) sans rechargement de page
+//   - État par identifiant : Record<number, ...> pour gérer plusieurs
+//     états indépendants (édition/sauvegarde/suppression par exercice)
+// ============================================================
 
-import {useEffect, useState, ChangeEvent } from 'react'
-// useParams: lit les segments dynamiques de l'url (/workout/:id -> params.id)
-//useNavigate: redirection programmatique
-import {useParams, useNavigate, Link } from 'react-router-dom'
+import { useEffect, useState, ChangeEvent } from 'react'
+// useParams : lit les segments dynamiques de l'URL (/workouts/:id → params.id)
+// useNavigate : redirection programmatique
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-   ArrowLeft, Calendar, Clock, FileText, Dumbbell,
-    Plus, Pencil, Trash2, Check, X, Loader2,
-
+  ArrowLeft, Calendar, Clock, FileText, Dumbbell,
+  Plus, Pencil, Trash2, Check, X, Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { Workout, Exercise, WorkoutExercise } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-const CAT_COLORS: Record<string, string> ={
-    Musculation: 'bg-indigo-500/15 text-indigo-300',
-    Cardio: 'bg-amber-500/15 text-amber-300',
-    Flexibilité: 'bg-emerald-500/15 text-emerald-300',
+const CAT_COLORS: Record<string, string> = {
+  Musculation: 'bg-indigo-500/15 text-indigo-300',
+  Cardio:      'bg-amber-500/15 text-amber-300',
+  Flexibilité: 'bg-emerald-500/15 text-emerald-300',
 }
-const CAT_TEXT: Record<string, string> ={
-    Musculation: 'text-indigo-400',
-    Cardio: 'text-amber-400',
-    Flexibilité: 'text-emerald-400',
+const CAT_TEXT: Record<string, string> = {
+  Musculation: 'text-indigo-400',
+  Cardio:      'text-amber-400',
+  Flexibilité: 'text-emerald-400',
 }
+
 function formatDate(d: string) {
-    const [y, mo, day] =d.slice(0, 10).split('-').map(Number)
-    return new Date(y, mo - 1, day).toLocaleDateString('fr-FR', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-
-    })
+  const [y, mo, day] = d.slice(0, 10).split('-').map(Number)
+  return new Date(y, mo - 1, day).toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
 }
 
-{/* Convertit des secindes en "X min Y s" */}
+// Convertit des secondes en "X min Y s"
 function formatDuration(secs: number) {
   const m = Math.floor(secs / 60), s = secs % 60
   return m > 0 ? `${m} min${s > 0 ? ` ${s}s` : ''}` : `${s}s`
 }
 
-// Type pour l'etat d'edition d'un exercice (tous strings pour les input)
+// Type pour l'état d'édition d'un exercice (tous strings pour les inputs)
 type EditState = { sets: string; reps: string; weight_used: string; duration: string }
 
-const miniInput = 
-    'w-full px-2 bg-slate-900 border border-slate-600 rounded text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500'
+const miniInput =
+  'w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500'
 
 export default function WorkoutDetail() {
-    // useParams extrait l'id de l'URL : /workouts/42 → id = "42"
-    const { id } = useParams<{ id: string }>()
-    const navigate = useNavigate()
+  // useParams extrait l'id de l'URL : /workouts/42 → id = "42"
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
-    const [workout, setWorkout] = useState<Workout | null>(null)
-    const [allExercises, setAllExercises] = useState<Exercise[]>([])
-    const [loading, setLoading] = useState (true)
+  const [workout, setWorkout] = useState<Workout | null>(null)
+  const [allExercises, setAllExercises] = useState<Exercise[]>([])
+  const [loading, setLoading] = useState(true)
 
-    // etat par exercise (keyed by weId = WorkoutExercise.id)
-    // Record<number, T > = objet indéxé par un nombre
-    // Permet de gérer l etat d'edition de CHAQUE exercice indépendémment
-    // sans que la modification d'un n affecte les autres
+  // ---- États par exercice (keyed by weId = WorkoutExercise.id) ----
+  // Record<number, T> = objet indexé par un nombre
+  // Permet de gérer l'état d'édition de CHAQUE exercice indépendamment
+  // sans que la modification d'un n'affecte les autres
+  const [editing, setEditing] = useState<Record<number, EditState>>({})
+  const [saving, setSaving] = useState<Record<number, boolean>>({})
+  const [deleting, setDeleting] = useState<number | null>(null) // Un seul à la fois
 
-    const [editing, setEditing ] = useState<Record<number, EditState>>({})
-    const [saving, setSaving ] = useState<Record<number, boolean>>({})
-    const [deleting, setDeleting] = useState<number | null>(null) // un seul a la fois
+  // État du panel d'ajout d'un exercice
+  const [addOpen, setAddOpen] = useState(false)
+  const [addForm, setAddForm] = useState({ exercise_id: 0, sets: '', reps: '', weight_used: '', duration: '' })
+  const [addSaving, setAddSaving] = useState(false)
 
-    //Etat du panel d ajout d exercice
-    const [addOpen, setAddOpen ] = useState(false)
-    const [addForm, setAddForm  ] = useState({ exercise_id: 0, sets: '', reps: '', weight_used: '', duration: ''})
-    const [addSaving, setAddSaving ] = useState(false)
-
-    // chargement de la seance + liste d exercices disponibles
-    // Promise.all attends que les deux requetes soient terminées avant de mettre à jour l etat
-    useEffect(() => {
-        if(!id) return
-        Promise.all([
-            api.get(`/workouts/${id}`),
-            api.get(`/exercises`),
-        ])
-
-        .then(([wRes, eRes]) => {
-            setWorkout(wRes.data.workout)
-            setAllExercises(eRes.data.exercises)
-            // Pre selectionne le premier exercice  disponible ds le formulaire d'ajout
-            setAddForm((f) => ({ ...f, exercise_id: eRes.data.exercises[0]?.id ?? 0 }))
-        })
-        .catch(() => { toast.error('seance introuvable'); navigate('/workouts') })
-        .finally(() => setLoading(false))
-
-}, [id, navigate]) //se re decle,che si id change (navigation entre seances)
-
-//  Gestion de l edition inline
-// 
-// Passe un exercice en mode edition (remplit l etat editing[ex.id])
-const startEdit = (ex: WorkoutExercise) => {
-    setEditing((prev) => ({
-        ...prev, // On conserve les autres exercices en cours d edition
-        [ex.id]: {
-            sets:   ex.sets  !=null ?String(ex.sets) : '',
-            reps:   ex.reps  !=null ?String(ex.reps) : '',
-            weight_used:   ex.weight_used  !=null ?String(ex.weight_used) : '',
-            duration:   ex.duration  !=null ?String(ex.duration) : '',
-        },
-    }))
-}
-
-// Annule l'edition en supprimant l entrée de editing
-const cancelEdit = (weId: number) => {
-    setEditing((prev) => {
-        const n = { ...prev}
-        delete n[weId] // Supprime la clé -> l'exercice repasse en mode lecture
-        return n
-    })
-}
-
-// Met a jour un champs de l etat d'edition d un exercice spécifique 
-const changeEdit = (weId: number, field: keyof EditState, value: string) => {
-    setEditing((prev) => ({ ...prev, [weId]: { ...prev[weId], [field]: value } }))
-}
-
-// Sauvegarde les modifications d'un exercice  (PATCH /workouts/:id/exercises/:weId)
-const saveEdit = async (weId: number) => {
+  // ---- Chargement de la séance + liste des exercices disponibles ----
+  // Promise.all attend que les DEUX requêtes soient terminées avant de mettre à jour l'état
+  useEffect(() => {
     if (!id) return
-    setSaving((prev) => ({ ...prev, [weId]: true })) //Active le spinner pour cezt exercice
+    Promise.all([
+      api.get(`/workouts/${id}`),
+      api.get('/exercises'),
+    ])
+      .then(([wRes, eRes]) => {
+        setWorkout(wRes.data.workout)
+        setAllExercises(eRes.data.exercises)
+        // Pré-sélectionne le premier exercice disponible dans le formulaire d'ajout
+        setAddForm((f) => ({ ...f, exercise_id: eRes.data.exercises[0]?.id ?? 0 }))
+      })
+      .catch(() => { toast.error('Séance introuvable'); navigate('/workouts') })
+      .finally(() => setLoading(false))
+  }, [id, navigate]) // Se re-déclenche si id change (navigation entre séances)
+
+  // ---- Gestion de l'édition inline ----
+
+  // Passe un exercice en mode édition (remplit l'état editing[ex.id])
+  const startEdit = (ex: WorkoutExercise) => {
+    setEditing((prev) => ({
+      ...prev, // On conserve les autres exercices en cours d'édition
+      [ex.id]: {
+        sets:        ex.sets        != null ? String(ex.sets)        : '',
+        reps:        ex.reps        != null ? String(ex.reps)        : '',
+        weight_used: ex.weight_used != null ? String(ex.weight_used) : '',
+        duration:    ex.duration    != null ? String(ex.duration)    : '',
+      },
+    }))
+  }
+
+  // Annule l'édition en supprimant l'entrée de editing
+  const cancelEdit = (weId: number) => {
+    setEditing((prev) => {
+      const n = { ...prev }
+      delete n[weId] // Supprime la clé → l'exercice repasse en mode lecture
+      return n
+    })
+  }
+
+  // Met à jour un champ de l'état d'édition d'un exercice spécifique
+  const changeEdit = (weId: number, field: keyof EditState, value: string) => {
+    setEditing((prev) => ({ ...prev, [weId]: { ...prev[weId], [field]: value } }))
+  }
+
+  // Sauvegarde les modifications d'un exercice (PATCH /workouts/:id/exercises/:weId)
+  const saveEdit = async (weId: number) => {
+    if (!id) return
+    setSaving((prev) => ({ ...prev, [weId]: true })) // Active le spinner pour cet exercice
     try {
-        const f = editing[weId]
-        const res = await api.patch(`/workouts/${id}/exercises/${weId}`, {
-            sets: f.sets ? Number(f.sets) : null,
-            reps: f.reps ? Number(f.reps) : null,
-            weight_used: f.weight_used ? Number(f.weight_used) : null,
-            duration: f.duration ? Number(f.duration) : null,
-        })
-
-        setWorkout(res.data.workout) // Met a jour l affichage avec les nouvelles valeurs
-        cancelEdit(weId) // Repasse en mode Lecture
-        toast.success('exercice mis a jour')
+      const f = editing[weId]
+      const res = await api.patch(`/workouts/${id}/exercises/${weId}`, {
+        sets:        f.sets        ? Number(f.sets)        : null,
+        reps:        f.reps        ? Number(f.reps)        : null,
+        weight_used: f.weight_used ? Number(f.weight_used) : null,
+        duration:    f.duration    ? Number(f.duration)    : null,
+      })
+      setWorkout(res.data.workout) // Met à jour l'affichage avec les nouvelles valeurs
+      cancelEdit(weId)             // Repasse en mode lecture
+      toast.success('Exercice mis à jour')
     } catch {
-        toast.error('erreur lors de la mise a jour')
-
+      toast.error('Erreur lors de la mise à jour')
     } finally {
-        setSaving((prev) => ({ ...prev, [weId]: false}))
+      setSaving((prev) => ({ ...prev, [weId]: false }))
     }
-}
-// ---- Suppression d'un exercice de la séance ----
+  }
+
+  // ---- Suppression d'un exercice de la séance ----
   const confirmDelete = async (weId: number) => {
     if (!id) return
     setDeleting(weId) // Affiche le spinner sur cet exercice
@@ -177,33 +172,31 @@ const saveEdit = async (weId: number) => {
     if (!id || !addForm.exercise_id) return
     setAddSaving(true)
     try {
-        const res = await api.post(`/workouts/${id}/exercises`, {
-            exercise_id: addForm.exercise_id,
-            sets: addForm.sets ? Number(addForm.sets) :null,
-            reps: addForm.reps ? Number(addForm.reps) :null,
-            weight_used: addForm.weight_used ? Number(addForm.weight_used) :null,
-            duration: addForm.duration ? Number(addForm.duration) :null,
-        })
-        setWorkout(res.data.workout)
-        // On reinitialise les champs mais on garde le selecteur d'exercice
-        setAddForm((f) => ({...f, sets: '', reps: '', weight_used: '', duration: ''}))
-        setAddOpen(false)
-        toast.success('Exercice ajouté')
-
-    } catch{
-        toast.error("impossible d'ajouter l exerciceé")
-
+      const res = await api.post(`/workouts/${id}/exercises`, {
+        exercise_id: addForm.exercise_id,
+        sets:        addForm.sets        ? Number(addForm.sets)        : null,
+        reps:        addForm.reps        ? Number(addForm.reps)        : null,
+        weight_used: addForm.weight_used ? Number(addForm.weight_used) : null,
+        duration:    addForm.duration    ? Number(addForm.duration)    : null,
+      })
+      setWorkout(res.data.workout)
+      // On réinitialise les champs mais on garde le sélecteur d'exercice
+      setAddForm((f) => ({ ...f, sets: '', reps: '', weight_used: '', duration: '' }))
+      setAddOpen(false)
+      toast.success('Exercice ajouté')
+    } catch {
+      toast.error("Impossible d'ajouter l'exercice")
     } finally {
-        setAddSaving(false)
+      setAddSaving(false)
     }
   }
 
   if (loading) return <LoadingSpinner />
-  if (!workout) return null // cas improbable mais typeScript l'exige
+  if (!workout) return null // Cas improbable mais TypeScript l'exige
 
-const exercises = workout.exercises ?? []
+  const exercises = workout.exercises ?? []
 
- return (
+  return (
     <div className="space-y-5 max-w-2xl">
       {/* Lien retour */}
       <Link to="/workouts" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors">
