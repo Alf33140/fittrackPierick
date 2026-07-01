@@ -10,7 +10,7 @@ const WorkoutModel = require('../models/workout.model');
 
 const WorkoutController = {
 
-    // --------- GET /api/worrkouts ---------
+    // --------- GET /api/workouts ---------
     // Retourne toutes les séances de l'utilisateur connecté
     async getAll(req,res){
         try {
