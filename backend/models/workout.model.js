@@ -70,8 +70,7 @@ const WorkoutModel = {
         // weight_used : poids utilisé en kg (peut petre null pour les exercices cardio)
         // duration : durée en secondes (pour les exercices cardio, pas de sets/reps)
         const [result] = await db.execute(
-            'INSERT INTO WorkoutExercise (workout_id, exercise_id, sets, reps, weight_used, duration)' +
-            ' VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO WorkoutExercise (workout_id, exercise_id, sets, reps, weight_used, duration) VALUES (?, ?, ?, ?, ?, ?)',
             [workoutId, exercise_id, sets || null, reps || null, weight_used || null, duration || null] );
         return result.insertId;
     },
@@ -81,13 +80,13 @@ const WorkoutModel = {
         // On filtre aussi par workout_id : un utilisateur ne peut modifier
         // que les exercices de ses propres séances
         await db.execute(
-            'UPDATE WorkoutExercise SET sets=?, reps=?, weight_used=?, duration=? +  WHERE id=? AND workout_id=?',
-            [sets || null, reps || null, weight_used || null, duration || null, weId, workoutid]
+            'UPDATE WorkoutExercise SET sets=?, reps=?, weight_used=?, duration=? WHERE id=? AND workout_id=?',
+            [sets || null, reps || null, weight_used || null, duration || null, weId, workoutId]
         );
     },
 
     //DELETE : Retirer un exercice d'une séance
-    async removeExercice(weId, workoutId) {
+    async removeExercise(weId, workoutId) {
         const [result] = await db.execute (
             'DELETE FROM WorkoutExercise WHERE id=? AND workout_id=?',
             [weId, workoutId]
@@ -98,7 +97,7 @@ const WorkoutModel = {
     // --- REPLACE: remplacer tous les exercices d'une séances-----
     // Utilisé lors d'un PUT /workouts/:id : on supprime tout et on réinsère/ Stratégie : DELETE tout + INSERT les nouveaux.
     // Plus simple que de calculer le différences (ajouts/suppressions/modifs).
-    async replaceExercises(workout_id, exercises) {
+    async replaceExercises(workoutId, exercises) {
         await db.execute('DELETE FROM WorkoutExercise WHERE workout_id = ?',[workoutId]);
         for(const ex of exercises){
             if (!ex.exercise_id) continue;
@@ -172,9 +171,9 @@ const WorkoutModel = {
         // DOUBLE JOIN : WorkoutExercise -> Exercise -> Workout | SUM(we.sets * we.reps) = total de répétitions effectuées par catégorie
         const [categoryStats] = await db.execute (
             `SELECT
-            e.category,
-            COUNT(we.id) as exercise_count,
-            COALESCE(SUM(we.sets * we.reps), 0) as total_reps
+                e.category,
+                COUNT(we.id) as exercise_count,
+                COALESCE(SUM(we.sets * we.reps), 0) as total_reps
             FROM WorkoutExercise we
             JOIN Exercise e ON we.exercise_id = e.id
             JOIN Workout w ON we.workout_id = w.id
@@ -185,7 +184,7 @@ const WorkoutModel = {
 
         //4- 5 dernières séances (résumé pour le dashboard)
         const [recentWorkouts] = await db.execute (
-            `SELECT id,title, date, duration
+            `SELECT id, title, date, duration
             FROM Workout
             WHERE user_id = ?
             ORDER BY date DESC

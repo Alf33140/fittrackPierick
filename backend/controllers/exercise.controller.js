@@ -43,7 +43,7 @@ const ExerciseController = {
     async getOne(req, res) {
         try {
             // Recherche de l'exercice par sopn ID (passé en url)
-            const exercise = await ExerciseModel.findById(req.param.id);
+            const exercise = await ExerciseModel.findById(req.params.id);
             //404 = Not Found: la redssource demandée n'existepas
             if (!exercise) return res.status(404).json({error: 'Exercise not found'});
             // 404 - Not Found : la ressource demandé n'existe pas
@@ -62,7 +62,7 @@ const ExerciseController = {
             const {name, category, muscle_group, description } = req.body;
 
             //Validation des champs obligatoires
-            if(!name || category) {
+            if(!name || !category) {
                 return res.status(400).json({ error: 'Name and category are required.'});
             }
             if(!VALID_CATEGORIES.includes(category)) {
@@ -86,16 +86,16 @@ const ExerciseController = {
 
             //On valide la catégorie seulement si elle est fournie
             if (category && !VALID_CATEGORIES.includes(category)){
-                return res.status(400).json ({error: `Category must be one of: ${VALID_CATEGORIES.join(', ')} ` });
+                return res.status(400).json ({error: `Category must be one of: ${VALID_CATEGORIES.json(', ')} ` });
             }
 
             //On vérifie l'existence AVANT de mettre à jour pour retourne un 404 clair
             const exercise = await ExerciseModel.findById(req.params.id);
             // Si il n'est pas trouvé, on arrête la requete     
-            if (!exercise) return res.status(404).json({error: 'Exercise not found.'});
+            if (!exercise) return res.status(404).join({error: 'Exercise not found.'});
             
             //si il existe on met à jours ses données
-            const updated = await ExerciseModel.update(req.paramams.id, {name, category, muscle_group, description});
+            const updated = await ExerciseModel.update(req.params.id, {name, category, muscle_group, description});
             res.json({message : 'exercise updated.', exercise: updated});
         } catch(err){
             res.status(500).json({error: 'Failed to update exercise.'});
