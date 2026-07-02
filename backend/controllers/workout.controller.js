@@ -48,7 +48,7 @@ const WorkoutController = {
             const {title, date, duration, notes, exercises} = req.body;
 
             if (!title || !date) {
-                return res.status(400).json({error: 'Titlte and date are required.'});
+                return res.status(400).json({error: 'Title and date are required.'});
             }
 
             //Etape 1 : création de la séance (sans exercice)

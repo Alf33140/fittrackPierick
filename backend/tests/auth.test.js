@@ -53,7 +53,7 @@ const BASE_USER = {
 const generateToken = (payload = {}) =>
     jwt.sign({id: 1, email: 'test@example.com', username: 'testuser', ...payload}, 
         process.env.JWT_SECRET, 
-        {expiresIn: id}
+        {expiresIn: '1d'}
     );
 
 describe('Auth routes', () => {
@@ -99,7 +99,7 @@ describe('POST /api/auth/register', () => {
                 password: 'password123'
             });
         expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Username, email and password required');
+        expect(res.body.error).toBe('Username, email and password are required.');
     });
 
     it('retourne 400 si le mot de passe < 6 caracteres', async () => {
@@ -111,7 +111,7 @@ describe('POST /api/auth/register', () => {
                 password: '12345'
             });
         expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Password must be at least 6 characters long');
+        expect(res.body.error).toBe('Password must be at least 6 characters.');
     });
 
     it('retourne 400 si l email est déjà utilisé', async () => {
@@ -125,8 +125,8 @@ describe('POST /api/auth/register', () => {
             email: 'test@example.com',
             password: 'password123'
         });
-        expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Email already in use');
+        expect(res.status).toBe(409);
+        expect(res.body.error).toBe('Email already in use.');
     });
 
     it('retourne 400 si le username est déjà utilisé', async () => {
@@ -141,8 +141,8 @@ describe('POST /api/auth/register', () => {
                 email: 'test2@example.com',
                 password: 'password123'
             });
-        expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Username already in use');
+        expect(res.status).toBe(409);
+        expect(res.body.error).toBe('Username already taken.');
     });
 });
 
@@ -180,7 +180,7 @@ describe('POST /api/auth/login', () => {
                 // password manquant
             });
         expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Email and password are required');
+        expect(res.body.error).toBe('Email and password are required.');
     });
     it('retourne 401 si email non trouvé', async () => {
         UserModel.findByEmail.mockResolvedValue(null); // email non trouvé
@@ -194,7 +194,7 @@ describe('POST /api/auth/login', () => {
         expect(res.status).toBe(401);
         // le message d'erreur est volontairement vague pour ne pas révéler si l'email ou le mot de passe est incorrect
         // securité (anti-enumeration)
-        expect(res.body.error).toBe('Invalid credentials');
+        expect(res.body.error).toBe('Invalid credentials.');
     });
     
     it('retourne 401 si mot de passe incorrect', async () => {
@@ -210,7 +210,7 @@ describe('POST /api/auth/login', () => {
                 password: 'wrongpassword'
             });
         expect(res.status).toBe(401);
-        expect(res.body.error).toBe('Invalid credentials');
+        expect(res.body.error).toBe('Invalid credentials.');
     });
 });
 

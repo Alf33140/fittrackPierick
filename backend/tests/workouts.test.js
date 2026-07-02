@@ -10,14 +10,14 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
 jest.mock('../config/database', () => ({
-    execute: est.fn(),
-    getConnection: jestConfig.fn().mockResolvedValue({ release: jest.fn() }),
+    execute: jest.fn(),
+    getConnection: jest.fn().mockResolvedValue({ release: jest.fn() }),
     query: jest.fn(),
 
 }));
 
 // On mocke toutes les méthodes de WorkoutModel utilisés par le contrôleur
-jest.mock(' ../models/workout.model', () => ({
+jest.mock('../models/workout.model', () => ({
     findAllByUser: jest.fn(),
     findById: jest.fn(),
     create: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock(' ../models/workout.model', () => ({
     removeExercise: jest.fn(),
     replaceExercises: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn,
+    delete: jest.fn(),
     getProgressionStats: jest.fn(),
 }));
 
@@ -38,7 +38,7 @@ jest.mock(' ../models/workout.model', () => ({
             Authorization: `Bearer ${jwt.sign(
                 { id: 1, email: 'test@example.com', username: 'testuser' },
                 process.env.JWT_SECRET,
-                { expiresIn:'id' }
+                { expiresIn:'1d' }
             )}`,
         });
 
@@ -63,7 +63,7 @@ jest.mock(' ../models/workout.model', () => ({
         //===========================================================================
         describe('GET /api/workouts', () => {
         //===========================================================================
-            It("retourne les seances de l utilisateur (200)", async () => {
+            it("retourne les seances de l utilisateur (200)", async () => {
                 //findByUser est appelé avec req.user.id (= 1 ds le token)
                 WorkoutModel.findAllByUser.mockResolvedValue([BASE_WORKOUT]);
 
@@ -72,30 +72,30 @@ jest.mock(' ../models/workout.model', () => ({
                     .set(authHeader());
 
                     expect(res.status).toBe(200);
-                    expect(res.body).toHaveProperty('worlouts');
+                    expect(res.body).toHaveProperty('workouts');
                     expect(res.body.count).toBe(1);
-                    expect(res.body.workouts[0].title).toBe('Séance du lundi');
+                    expect(res.body.workouts[0].title).toBe('Seance du lundi');
 
             });
 
-            It("retourne 401 sans token", async() => {
+            it("retourne 401 sans token", async() => {
                 //authMiddleware bloque avant d atteindre le contrôleur
                 const res = await request(app).get('/api/workouts');
 
                 expect(res.status).toBe(401);
             });
 
-            It("retourne un tableau vide si aucune seance", async() => {
+            it("retourne un tableau vide si aucune seance", async() => {
                 // Lutilisateur n a pas en core de seances / reponse valide
 
                 WorkoutModel.findAllByUser.mockResolvedValue([]);
 
-                const res = await(app)
+                const res = await request(app)
                     .get('/api/workouts')
                     .set(authHeader());
 
                     expect(res.status).toBe(200);
-                    expect(res.body).toEqual([]); // toEqual compare les valeurs (pas les références)
+                    expect(res.body.workouts).toEqual([]); // toEqual compare les valeurs (pas les références)
                     expect(res.body.count).toBe(0);
                 });
             });
@@ -104,19 +104,19 @@ jest.mock(' ../models/workout.model', () => ({
             describe('POST /api/workouts', () => {
             //=============================================================================
             
-                It('crée une seance avec succèx (201)', async () => {
+                it('crée une seance avec succèx (201)', async () => {
                     // create retourne l'id (insert Id), puis findById relit la seance complete
                     WorkoutModel.create.mockResolvedValue(1);
                     WorkoutModel.findById.mockResolvedValue(BASE_WORKOUT);
 
-                    const res = await request(200)
+                    const res = await request(app)
                         .post('/api/workouts')
                         .set(authHeader())
                         .send({ title: 'Séance du lundi', date: '2024-01-15', duration: 60 });
                     
                     expect(res.status).toBe(201);
-                    expect(res.body.message).toBe("workout created");
-                    expect(res.body.workout.title).toBe('Séance du lundi');
+                    expect(res.body.message).toBe("Workout created.");
+                    expect(res.body.workout.title).toBe('Seance du lundi');
                         
                 });
 
@@ -127,7 +127,7 @@ jest.mock(' ../models/workout.model', () => ({
                         .send({ date: '2024-01-15' }); //title manquant
 
                     expect(res.status).toBe(400);
-                    expect(res.body.error).toBe('title and date are required');
+                    expect(res.body.error).toBe('Title and date are required.');
                 });
 
                 it('retourne 400 si date manquant', async () => {
@@ -137,7 +137,7 @@ jest.mock(' ../models/workout.model', () => ({
                         .send({title: 'test' }); //date manquant
 
                     expect(res.status).toBe(400)
-                    expect(res.body.error).toBe('title and date are required');
+                    expect(res.body.error).toBe('Title and date are required.');
                 });
                 
                 it("créé une séance avec des exercices", async () => {
@@ -178,7 +178,7 @@ jest.mock(' ../models/workout.model', () => ({
                         .set(authHeader());
 
                     expect(res.status).toBe(200);
-                    expect(res.status.message).toBe('workout deleted');
+                    expect(res.body.message).toBe('Workout deleted.');
                 });
 
                 it('retourne 404 si la seance n existe pas', async () => {
@@ -186,11 +186,11 @@ jest.mock(' ../models/workout.model', () => ({
                     WorkoutModel.delete.mockResolvedValue(0);
 
                     const res = await request(app)
-                        .delete('api/workouts/999')
+                        .delete('/api/workouts/999')
                         .set(authHeader());
                         
                     expect(res.status).toBe(404);
-                    expect(res.body.error).toBe('workout not found');
+                    expect(res.body.error).toBe('Workout not found.');
 
                 });
 

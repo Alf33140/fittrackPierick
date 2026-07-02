@@ -26,7 +26,7 @@ const authMiddleware = (req, res, next) => {
     
     //Vérification de la premiere et du format "Bearer <token>" rappel "||" signifie "et"
     if (!authHeader || !authHeader.startsWith('Bearer')) {
-        return res.status(401).json({error:'Acces denied. No token provided.'});
+        return res.status(401).json({error:'Access denied. No token provided.'});
     // 401 = Non authentifié (il manque ou le token est absent/malinformé)
     }
     // On extrait uniquement le token (on retire le préfixe le préfixe "Bearer")

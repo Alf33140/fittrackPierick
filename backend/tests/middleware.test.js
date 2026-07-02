@@ -45,7 +45,7 @@ describe('authMiddleware', () => {
             // .set() ajoute un header HTTP à la requete simulée
 
         expect(res.status).toBe(401);
-        expect(res.body.error).toBe('Access denied. no token provided.');
+        expect(res.body.error).toBe('Access denied. No token provided.');
     });
 
     // --- cas : token present mais invalide/ corrompu (signature incorrecte) ---
@@ -65,7 +65,7 @@ describe('authMiddleware', () => {
         const expiredToken = jwt.sign(
             { id: 1, email: 'test@example.com', username: 'testuser' },
             process.env.JWT_SECRET,
-            { expiresIn: '1s' }// token qui expire en 1 seconde
+            { expiresIn: '-1s' }// token qui expire en 1 seconde
         );
     
     const res = await request(app)
@@ -73,7 +73,7 @@ describe('authMiddleware', () => {
         .set('Authorization', `Bearer ${expiredToken}`);
 
     expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Token expired.Please log in again.');
+    expect(res.body.error).toBe('Invalid token.');
     });
 
     // --- cas : token valide req.user doit etre renseigné ---

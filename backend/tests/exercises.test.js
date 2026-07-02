@@ -133,7 +133,7 @@ describe('Exercise Routes', () => {
         .set(authHeader())
         .send({ category: 'Musculation' }); // name absent
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('Name and Category are required.');
+    expect(res.body.error).toBe('Name and category are required.');
 
     });
 
@@ -144,7 +144,7 @@ describe('Exercise Routes', () => {
         .send({ name: 'Squat' }); // Category absente
         
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('name and category are required');
+    expect(res.body.error).toBe('Name and category are required.');
     });
 
     it('retourne 400 si categorie invalide', async () => {
@@ -162,8 +162,8 @@ describe('Exercise Routes', () => {
   describe('PUT /api/exercises/:id', () => {
   //==================================================================
   
-    it('modifie un exercice avec succes (200)', async () => {
-        const updated = {... BASE_EXERCISE,cname:'Squat modifié' };
+    it('modifier un exercice avec succes (200)', async () => {
+        const updated = {... BASE_EXERCISE,name:'Squat modifié' };
         // findById : verifie que l exercice existe (sinon (404)
     ExerciseModel.findById.mockResolvedValue(BASE_EXERCISE);
     // Update retourne l'exercice modifié
@@ -174,29 +174,30 @@ describe('Exercise Routes', () => {
     .set(authHeader())
     .send({name: 'Squat modifié', category: 'Musculation'});
     
-    expert(res.status).toBe(200);
-    expect(res.body.message).toBe('Squat modifié');
-    
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('exercise updated.');
+    expect(res.body.exercise.name).toBe('Squat modifié');
     });
+
     it("retourne 404 si l'exercice n'existe pas", async () => {
         //null / exercice introuvable
         ExerciseModel.findById.mockResolvedValue(null);
         
         const res = await request(app)
-        .put("/api/exercises/999")
+        .put('/api/exercises/999')
         .set(authHeader())
-        .send({ name: 'Test', category:' Cardio'})
+        .send({ name: 'Test', category:'Cardio'});
         
         expect(res.status).toBe(404)
-            expect(res.body.error).toBe('Exercise not found');
+        expect(res.body.error).toBe('Exercise not found.');
         
         });
 
         it('retourne 400 si categorie invalide lors de la modfication', async () => {
             const res = await request(app)
             .put('/api/exercises/1')
-            .set('/authHeader'())
-            .settings({ category: 'Invalide'});
+            .set(authHeader())
+            .send({ category: 'Invalide'});
         
         expect(res.status).toBe(400);
         });
@@ -212,11 +213,11 @@ describe('Exercise Routes', () => {
         ExerciseModel.delete.mockResolvedValue(true);
 
         const res =  await request(app)
-            .delete('/api/exercices/1')
+            .delete('/api/exercises/1')
             .set(authHeader());
 
             expect(res.status).toBe(200);
-            expect(res.status).toBe('Exercise deleted');
+            expect(res.body.message).toBe('Exercise deleted.');
 
         });
 
@@ -228,25 +229,25 @@ describe('Exercise Routes', () => {
                 .set(authHeader());
 
             expect(res.status).toBe(404);
-            expect(res.body.error).toBE('Exercise not found');
+            expect(res.body.error).toBe('Exercise not found');
             
         });
 
-        it("retourne 409 si l'exercice est utilisé ds une seance", async() => {
+        it("retourne 409 si l'exercice est utilisé ds une seance", async () => {
             ExerciseModel.findById.mockResolvedValue(BASE_EXERCISE);
             // mockRejectedValue() simule une erreur relevée par le modèle
             //On créé une erreur avec un code MySQL spécifique (FK constraint)
             // pour simuler la contrainte RESTRICT définie en BDD.
             const fkError = new Error('FK Constraint');
             fkError.code = 'ER_ROW_IS_REFERENCED_2';
-            ExerciseModel.delete.mockRejectedValue(fkerror);
+            ExerciseModel.delete.mockRejectedValue(fkError);
 
             const res = await request(app)
                 .delete('/api/exercises/1')
                 .set(authHeader());
 
             expect(res.status).toBe(409); // 409 = conflict (Ressources en cours d utilisation)
-            expect(res.body.error).toBe('Cannot delete: exercise is used in one ou more workouts.');
+            expect(res.body.error).toBe('Cannot delete: exercise is used in one or more workouts');
         });
     });
 

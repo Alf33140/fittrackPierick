@@ -1,6 +1,6 @@
 module.exports = {
     testEnvironment: 'node',
-    setupFiles: ['./jest.setup.js'],
+    setupFiles: ['./tests/setup.js'],
     coverageDirectory: './coverage',
     collectCoverageFrom: [
         'controllers/**/*.js',
