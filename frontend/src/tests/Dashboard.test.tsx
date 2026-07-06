@@ -15,7 +15,7 @@ import Dashboard from '../pages/Dashboard'
 import { AuthContext, AuthContextType } from '../context/AuthContext'
 import { ProgressionStats, User } from '../types'
 import api from '../services/api'
-import { CartesianGrid } from 'recharts'
+
 
 // --- Mock de l instance Axios --- 
 
@@ -76,6 +76,7 @@ const mockStats: ProgressionStats = {
     }
 }
     const makeAuthContext = (overrides: Partial<AuthContextType> = {}): AuthContextType => ({
+        user: mockUser,
         loading: false,
         login: vi.fn(),
         register: vi.fn(),
@@ -108,7 +109,7 @@ const mockStats: ProgressionStats = {
         })
 
         it('affiche le message de bienvenu avec le nom utilisateur', async () => {
-            mockGet.mockResolvedValue({ data: mockstats })
+            mockGet.mockResolvedValue({ data: mockStats })
             renderDashboard()
 
             //waitFor: attends que le chargement se termine et que le DOM soit mis a jour
@@ -119,9 +120,61 @@ const mockStats: ProgressionStats = {
         })
 
         it('affiche les 4 cards de statistiques avec les bonnes valeurs', async () => {
-            mockGet.mockResolvedValue({ data: mockstats })
+            mockGet.mockResolvedValue({ data: mockStats })
             renderDashboard()
 
         // On attends que le premier élément soit visible avant de vérifier les valeurs
+            await waitFor(() => {
+                expect(screen.getByText('Séances totales')).toBeInTheDocument()
+                expect(screen.getByText("Minutes d'entrainement")).toBeInTheDocument()
+                expect(screen.getByText('Durée moyenne')).toBeInTheDocument()
+                expect(screen.getByText('Exercices différents')).toBeInTheDocument()
+            })
+        // Vérification des valeurs numériques des cards
+                expect(screen.getByText('12')).toBeInTheDocument() //total_workouts
+                expect(screen.getByText("720")).toBeInTheDocument() //total_minutes
+                expect(screen.getByText('45 min')).toBeInTheDocument() //avg_duration formatée
+                expect(screen.getByText('9')).toBeInTheDocument() //unique exercises
+            })
 
+            it('affiche les dernières séances', async () => {
+                mockGet.mockResolvedValue({ data: mockStats })
+                renderDashboard()
+
+                await waitFor(() => {
+                    // le titre de la séance récente doit apparaitre
+                    expect(screen.getByText('Séance du lundi')).toBeInTheDocument()
+                })
+            })
+
+            it("affiche 0 pour les stats quand il n'y a pas de données", async () => {
+                // Stats vides pour suler un nouvel utilisateur sans activité
+                const emptyStats: ProgressionStats = {
+                    ...mockStats,
+                    stats: {
+                        ...mockStats.stats,
+                    summary: { total_workouts: 0, total_minutes: 0, avg_duration: 0, unique_exercises: 0 },
+                    recent: [],
+                    byCategory: [], 
+                },
+            }
+
+            mockGet.mockResolvedValue({ data: emptyStats})
+            renderDashboard()
+
+            await waitFor(() => {
+                // Quand recent est vide, le message d'etat vide s'affiche
+                expect(screen.getByText('Aucune séance.')).toBeInTheDocument()
+            })
         })
+
+        it("affiche l'objectif de l'utilisateur", async () => {
+            mockGet.mockResolvedValue({ data: mockStats })
+            renderDashboard()
+
+            await waitFor(() => {
+                // goal: 'maintain' -> GOAL_LABELS[] = 'maintien du poids'
+                expect(screen.getByText(/maintien du poids/)).toBeInTheDocument()
+            })
+        })
+    })
