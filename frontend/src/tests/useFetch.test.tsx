@@ -97,4 +97,27 @@ describe('useFetch', () =>{
 
             })
         })
+
+        it("remet loading a true lors du refetch", async () => {
+            mockGet.mockResolvedValue({ data: { count: 1 } })     
+
+            const { result } = renderHook(() => useFetch<{ count: number }> ('/test'))
+
+            await waitFor(() => expect(result.current.loading).toBe(false))
+
+            result.current.refetch()
+
+            //verification synchrone immediate : loading doit etre repassé a true
+             await waitFor(() => expect(result.current.loading).toBe(true))
+        })
+
+        it("appelle api.get avec la bonne URL", async () => {
+            mockGet.mockResolvedValue({ data: {} })  
+
+            renderHook(() => useFetch('/stats/progression'))
+
+            await waitFor(() => {
+                expect(mockGet).toHaveBeenCalledWith('/stats/progression')
+            })
+        })
     })
