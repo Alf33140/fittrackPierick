@@ -60,7 +60,7 @@ const mockStats: ProgressionStats = {
         summary: {
             total_workouts: 12,
             total_minutes: 720,
-            avg_duration: 720, // valeur unique : facilite les assertions
+            avg_duration: 45, // valeur unique : facilite les assertions
             unique_exercises: 9, // Different de exercice_count des categories
         },
         monthly: [
@@ -132,7 +132,7 @@ const mockStats: ProgressionStats = {
             })
         // Vérification des valeurs numériques des cards
                 expect(screen.getByText('12')).toBeInTheDocument() //total_workouts
-                expect(screen.getByText("720")).toBeInTheDocument() //total_minutes
+                expect(screen.getByText('720')).toBeInTheDocument() //total_minutes
                 expect(screen.getByText('45 min')).toBeInTheDocument() //avg_duration formatée
                 expect(screen.getByText('9')).toBeInTheDocument() //unique exercises
             })

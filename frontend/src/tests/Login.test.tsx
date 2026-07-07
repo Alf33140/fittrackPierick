@@ -35,7 +35,7 @@ vi.mock('react-router-dom', async () => {
 // --- Mock de react-hot-toast ---
 // on mocke toast pour pouvoir verifier qu il a ete appele sans afficher de vraies modifications
 
-vi.mock('react-hot_toast', () => ({
+vi.mock('react-hot-toast', () => ({
     default: { error: vi.fn(), success: vi.fn() },
 }))
 

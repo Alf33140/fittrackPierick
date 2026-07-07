@@ -13,3 +13,11 @@
 // etc...
 // sans cet import, ces matchers ne seraient pas disponibles ds les tests
 import '@testing-library/jest-dom'
+// Indique à React que l'environnement de test gère act() correctement.
+// Sans ça, Vitest/jsdom peut désynchroniser le re-render déclenché par
+// setState à l'intérieur de act(), et result.current reflète un état
+// obsolète au moment de l'assertion.
+declare global{
+    var IS_REACT_ACT_ENVIRONMENT: boolean
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true

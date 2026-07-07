@@ -33,8 +33,8 @@ export function useFetch<T>(url: string): UseFetchResult<T> {
     const fetchData = useCallback(()=>{
         // Promise.resolve()
         //     .then(() => {
-        //         setLoading(true)
-        //         setError(null)            
+                setLoading(true)
+                setError(null)            
         //     })
         //     .then(() => api.get<T>(url) )
         //     .then((res: {data: T}) => setData(res.data))

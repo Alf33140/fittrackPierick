@@ -99,22 +99,24 @@ describe('useFetch', () =>{
             })
         })
 
-        it("remet loading a true lors du refetch", async () => {
-            mockGet.mockResolvedValue({ data: { count: 1 } })     
+        it('remet loading a true lors du refetch', async () => {
+            // Préparer un rendu du hook et attendre la fin du premier appel
+            mockGet.mockResolvedValue({ data: { count: 1 } })
+            const { result } = renderHook(() => useFetch<{ count: number }>("/test"))
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false)
+            })
 
-            const { result } = renderHook(() => useFetch<{ count: number }> ('/test'))
-
-            await waitFor(() => expect(result.current.loading).toBe(false))
-
-            // Pour le second appel, on simule un chargement infini
-            mockGet.mockReturnValue(new Promise(() => {}))
-
+            // 1. Déclencher le refetch
             act(() => {
                 result.current.refetch()
             })
-            //verification synchrone immediate : loading doit etre repassé a true
-            expect(result.current.loading).toBe(true)
-        })
+
+            // 2. Utiliser waitFor pour attendre que l'état soit mis à jour
+            await waitFor(() => {
+                expect(result.current.loading).toBe(true)
+            })
+        });
 
         it("appelle api.get avec la bonne URL", async () => {
             mockGet.mockResolvedValue({ data: {} })  
