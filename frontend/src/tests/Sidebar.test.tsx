@@ -3,7 +3,7 @@
 //
 // La sidebar utilise useAuth (contexte) et useNavigate (router)
 // On mocke les deux pour controler leur comportement et verifier 
-// les interactions (clic sur Deconnexion -> logout -> navigation).
+// les interactions (clic sur deconnexion -> logout -> navigation).
 //================================================================================
 
 import {describe, it, expect, vi, beforeEach } from 'vitest'
@@ -64,7 +64,7 @@ const renderSidebar = (ctx = makeAuthContext()) =>
             // getByText: cherche un élément par texte exact
             expect(screen.getByText('Dashboard')).toBeInTheDocument()
             expect(screen.getByText('Exercices')).toBeInTheDocument()
-            expect(screen.getByText('Deconnexion')).toBeInTheDocument()
+            expect(screen.getByText('deconnexion')).toBeInTheDocument()
         })
 
         it("affiche le nom d'utilisateur et l email", () =>{
@@ -90,7 +90,7 @@ const renderSidebar = (ctx = makeAuthContext()) =>
 
             // fireevent.click: simule un clic(synchrone , contrairement a userEvent)
             // Préférer userEvent pour les interactions complexes , fireEvent pour les clics simples
-            fireEvent.click(screen.getByText('Deconnexion'))
+            fireEvent.click(screen.getByText('deconnexion'))
     
             // les deux assertions doivent être vraies APRES le clic
             expect(mockLogout).toHaveBeenCalledTimes(1)

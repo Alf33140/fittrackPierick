@@ -53,10 +53,10 @@ const renderRegister = (ctx = makeAuthContext()) =>
             renderRegister()
 
             //Verfication quett les placeholders sont présent dan,s le DOM
-            expect(screen.getByPlaceholderText('John Doe')).toBeInTheDocument()
+            expect(screen.getByPlaceholderText('johndoe')).toBeInTheDocument()
             expect(screen.getByPlaceholderText('ton@email.com')).toBeInTheDocument()
-            expect(screen.getByPlaceholderText('6 caractères minimume')).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: /créé ton compte/i})).toBeInTheDocument()
+            expect(screen.getByPlaceholderText('6 caractères minimum')).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /créer mon compte/i})).toBeInTheDocument()
         })
 
         it('affiche le sélecteur d objectifs avec la valeur par défaut', () => {
@@ -73,7 +73,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
             // getByRole('OPTIONS') : cherche les balises <option> dans le DOM
             expect(screen.getByRole('option', { name: 'Perdre'})).toBeInTheDocument()
             expect(screen.getByRole('option', { name: 'Maintenir'})).toBeInTheDocument()
-            expect(screen.getByRole('option', { name: 'prendre'})).toBeInTheDocument()
+            expect(screen.getByRole('option', { name: 'Prendre'})).toBeInTheDocument()
         })
 
         it('appelle Register avec les données correctes', async () => {
@@ -81,7 +81,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
             mockRegister.mockResolvedValue(undefined)
             renderRegister()
 
-            await user.type(screen.getByPlaceholderText('John Doe'), 'testuser')
+            await user.type(screen.getByPlaceholderText('johndoe'), 'testuser')
             await user.type(screen.getByPlaceholderText('ton@email.com'), 'test@example.com')
             await user.type(screen.getByPlaceholderText('6 caractères minimum'), 'password123')
             await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
@@ -92,7 +92,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
                 expect(mockRegister).toHaveBeenCalledWith(
                     expect.objectContaining({
                         username: 'testuser',
-                        email: 'test@exmaple.com',
+                        email: 'test@example.com',
                         password: 'password123',
                         goal: 'maintain', //valeur par defaut du sélecteur
                     })
@@ -104,7 +104,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
             mockRegister.mockResolvedValue(undefined)
             renderRegister()
 
-            await user.type(screen.getByPlaceholderText('John Doe'), 'testuser')
+            await user.type(screen.getByPlaceholderText('johndoe'), 'testuser')
             await user.type(screen.getByPlaceholderText('ton@email.com'), 'test@example.com')
             await user.type(screen.getByPlaceholderText('6 caractères minimum'), 'password123')
             await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
@@ -117,7 +117,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
         it('affiche un lien vers la page de connexion', () => {
             renderRegister()
             
-            expect(screen.getByRole('link', { name: / se connecter/i })).toBeInTheDocument()
+            expect(screen.getByRole('link', { name: /se connecter/i })).toBeInTheDocument()
         })
 
         it('Affiche une erreur Toast en cas d echec d inscription', async () => {
@@ -128,7 +128,7 @@ const renderRegister = (ctx = makeAuthContext()) =>
             mockRegister.mockRejectedValue({ response: { data: { error: 'Email already in use'} } })
             renderRegister()
 
-            await user.type(screen.getByPlaceholderText('John Doe'), 'testuser')
+            await user.type(screen.getByPlaceholderText('johndoe'), 'testuser')
             await user.type(screen.getByPlaceholderText('ton@email.com'), 'test@example.com')
             await user.type(screen.getByPlaceholderText('6 caractères minimum'), 'password123')
             await user.click(screen.getByRole('button', { name: /créer mon compte/i }))

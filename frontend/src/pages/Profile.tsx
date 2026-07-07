@@ -134,7 +134,7 @@ export default function Profile() {
                             <span className="text-xs text-slate-500">Exercices maîtrisés</span>
                         </div>
                         <p className="text-2xl font-bold text-slate-100">{stats?.summary.unique_exercises ?? 0}</p>
-                        <p className="text-xs text-slate-500 mt-1">exercices différents</p>
+                        <p className="text-xs text-slate-500 mt-1">Exercices différents</p>
                         </div>
                     </div>
 

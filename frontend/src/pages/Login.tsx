@@ -1,11 +1,3 @@
-//
-//
-//
-//
-//
-//
-//
-
 // FormEvent: type de l'évènement <form onSubmit>
 import { useState, FormEvent } from "react";
 // Link: lien interne React Router (pas de rechargement de page)
@@ -95,7 +87,7 @@ export default function Login() {
                         value = {password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                        placeholder = "******"
+                        placeholder = "********"
                         />
                     </div>
 

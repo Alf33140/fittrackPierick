@@ -54,7 +54,7 @@ const renderWithRoutes = (ctx: AuthContextType, initialPath = '/dashboard') =>
                 <Routes>
                     {/* PrivateRoute comme element parent: agit comme un garde */}
                     <Route element={<PrivateRoute />}>
-                        <Route path="/dashboard" element= {<div> Contenu Dashbord</div>} />
+                        <Route path="/dashboard" element= {<div>Contenu Dashboard</div>} />
                     </Route>
                         <Route path="/login" element= {<div> Page Login</div>} />
                 </Routes>

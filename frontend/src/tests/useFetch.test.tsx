@@ -12,9 +12,10 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest"
 // act: enveloppe les actions qui declenchent des mises a jour d'état React
-import { renderHook, waitFor } from "@testing-library/react"
+import { renderHook, waitFor, act } from "@testing-library/react"
 import { useFetch } from "../hooks/useFetch"
 import api from '../services/api'
+
 
 // --- Mock de l instance Axios ---
 // On remplace api.get par un mock pour eviter  de vraies requetes HTTP
@@ -55,7 +56,7 @@ describe('useFetch', () =>{
         //waitFor: boucle jusqu' a ce que l assertion soit vraie ( ou timeOut)
         //Nécessaire car useFetch est asynchrone
         await waitFor(() => {
-            expect(result.current.loading).toBe(true) 
+            expect(result.current.loading).toBe(false) 
         })
             expect(result.current.data).toEqual(responseData) 
             expect(result.current.error).toBeNull() 
@@ -73,7 +74,7 @@ describe('useFetch', () =>{
             })
             
             // le hook retourne le msg d erreur générique défini ds useFetch
-            expect(result.current.error).toBe("impossible de charger les données") 
+            expect(result.current.error).toBe("Impossible de charger les données") 
             expect(result.current.data).toBeNull() 
         })
 
@@ -105,10 +106,14 @@ describe('useFetch', () =>{
 
             await waitFor(() => expect(result.current.loading).toBe(false))
 
-            result.current.refetch()
+            // Pour le second appel, on simule un chargement infini
+            mockGet.mockReturnValue(new Promise(() => {}))
 
+            act(() => {
+                result.current.refetch()
+            })
             //verification synchrone immediate : loading doit etre repassé a true
-             await waitFor(() => expect(result.current.loading).toBe(true))
+            expect(result.current.loading).toBe(true)
         })
 
         it("appelle api.get avec la bonne URL", async () => {

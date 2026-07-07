@@ -71,7 +71,7 @@ export default function Sidebar(){
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 transition-colors">
                 <LogOut size={17} />
-                Déconnexion
+                deconnexion
             </button>
         </div>
     </aside>

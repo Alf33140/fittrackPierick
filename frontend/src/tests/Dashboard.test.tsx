@@ -126,7 +126,7 @@ const mockStats: ProgressionStats = {
         // On attends que le premier élément soit visible avant de vérifier les valeurs
             await waitFor(() => {
                 expect(screen.getByText('Séances totales')).toBeInTheDocument()
-                expect(screen.getByText("Minutes d'entrainement")).toBeInTheDocument()
+                expect(screen.getByText("Minutes d'entraînement")).toBeInTheDocument()
                 expect(screen.getByText('Durée moyenne')).toBeInTheDocument()
                 expect(screen.getByText('Exercices différents')).toBeInTheDocument()
             })
@@ -173,8 +173,8 @@ const mockStats: ProgressionStats = {
             renderDashboard()
 
             await waitFor(() => {
-                // goal: 'maintain' -> GOAL_LABELS[] = 'maintien du poids'
-                expect(screen.getByText(/maintien du poids/)).toBeInTheDocument()
+                // goal: 'maintain' -> GOAL_LABELS[] = 'Maintien du poids'
+                expect(screen.getByText(/Maintien du poids/)).toBeInTheDocument()
             })
         })
     })

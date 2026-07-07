@@ -100,7 +100,7 @@ describe('Login', () => {
     renderLogin()
 
     // user.type() simule la frappe caractere par caractere (avec evenements complets)
-    await user.type(screen.getByPlaceholderText('ton@example.com'), 'test@example.com')
+    await user.type(screen.getByPlaceholderText('ton@email.com'), 'test@example.com')
     await user.type(screen.getByPlaceholderText('********'), 'password123')
     await user.click(screen.getByRole('button', {name: /se connecter/i}))
 
@@ -118,7 +118,7 @@ describe('Login', () => {
     renderLogin()
 
     // user.type() simule la frappe caractere par caractere (avec evenements complets)
-    await user.type(screen.getByPlaceholderText('ton@example.com'), 'test@example.com')
+    await user.type(screen.getByPlaceholderText('ton@email.com'), 'test@example.com')
     await user.type(screen.getByPlaceholderText('********'), 'password123')
     await user.click(screen.getByRole('button', {name: /se connecter/i}))
 
@@ -132,10 +132,10 @@ describe('Login', () => {
     const toast = (await import('react-hot-toast')).default
     const user = userEvent.setup()
     //mockRejectedValue: simule une erreur de l'API (ex: identifiants incorrects)
-    mockLogin.mockRejectedValue({ response: { data:{ error: 'invalid credentials.'}}})
+    mockLogin.mockRejectedValue({ response: { data:{ error: 'Invalid credentials.'}}})
     renderLogin()
 
-    await user.type(screen.getByPlaceholderText('ton@example.com'), 'bad@example.com')
+    await user.type(screen.getByPlaceholderText('ton@email.com'), 'bad@example.com')
     await user.type(screen.getByPlaceholderText('********'), 'wrongpass')
     await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
